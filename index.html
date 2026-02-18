@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clínica de Atención Integral</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div>
+        <h1>Clínica de Atención Integral</h1>
+        <p>
+          Administra servicios, especialidades, agenda de citas e historial clínico
+          desde un solo panel.
+        </p>
+      </div>
+      <button id="clearDataBtn" class="danger">Limpiar datos de prueba</button>
+    </header>
+
+    <main class="layout">
+      <aside class="panel navigation">
+        <h2>Panel de administración</h2>
+        <nav>
+          <button class="nav-btn active" data-target="dashboard">Resumen</button>
+          <button class="nav-btn" data-target="services">Servicios</button>
+          <button class="nav-btn" data-target="specialties">Especialidades</button>
+          <button class="nav-btn" data-target="appointments">Citas</button>
+          <button class="nav-btn" data-target="records">Historial clínico</button>
+        </nav>
+      </aside>
+
+      <section class="content">
+        <article id="dashboard" class="panel tab active">
+          <h2>Resumen general</h2>
+          <div class="metrics">
+            <div class="metric-card">
+              <span class="metric-label">Servicios</span>
+              <strong id="servicesCount">0</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Especialidades</span>
+              <strong id="specialtiesCount">0</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Citas programadas</span>
+              <strong id="appointmentsCount">0</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Historiales clínicos</span>
+              <strong id="recordsCount">0</strong>
+            </div>
+          </div>
+        </article>
+
+        <article id="services" class="panel tab">
+          <h2>Servicios de la clínica</h2>
+          <form id="serviceForm" class="stack">
+            <label>
+              Nombre del servicio
+              <input type="text" name="name" required placeholder="Ej. Laboratorio clínico" />
+            </label>
+            <label>
+              Descripción
+              <textarea name="description" required placeholder="Detalle del servicio"></textarea>
+            </label>
+            <button type="submit">Agregar servicio</button>
+          </form>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Servicio</th><th>Descripción</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="servicesTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article id="specialties" class="panel tab">
+          <h2>Especialidades médicas</h2>
+          <form id="specialtyForm" class="stack">
+            <label>
+              Especialidad
+              <input type="text" name="name" required placeholder="Ej. Cardiología" />
+            </label>
+            <label>
+              Médico responsable
+              <input type="text" name="doctor" required placeholder="Ej. Dra. Ana López" />
+            </label>
+            <button type="submit">Agregar especialidad</button>
+          </form>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Especialidad</th><th>Médico</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="specialtiesTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article id="appointments" class="panel tab">
+          <h2>Agenda de citas</h2>
+          <form id="appointmentForm" class="stack grid-2">
+            <label>
+              Paciente
+              <input type="text" name="patient" required placeholder="Nombre del paciente" />
+            </label>
+            <label>
+              Médico
+              <input type="text" name="doctor" required placeholder="Nombre del médico" />
+            </label>
+            <label>
+              Especialidad
+              <select name="specialty" id="appointmentSpecialty" required></select>
+            </label>
+            <label>
+              Servicio
+              <select name="service" id="appointmentService" required></select>
+            </label>
+            <label>
+              Fecha
+              <input type="date" name="date" required />
+            </label>
+            <label>
+              Hora
+              <input type="time" name="time" required />
+            </label>
+            <button type="submit">Agendar cita</button>
+          </form>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Paciente</th><th>Médico</th><th>Especialidad</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="appointmentsTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article id="records" class="panel tab">
+          <h2>Historial clínico</h2>
+          <form id="recordForm" class="stack grid-2">
+            <label>
+              Paciente
+              <input type="text" name="patient" required placeholder="Nombre del paciente" />
+            </label>
+            <label>
+              Médico
+              <input type="text" name="doctor" required placeholder="Nombre del médico" />
+            </label>
+            <label>
+              Diagnóstico
+              <textarea name="diagnosis" required placeholder="Diagnóstico del paciente"></textarea>
+            </label>
+            <label>
+              Tratamiento / Evolución
+              <textarea name="treatment" required placeholder="Tratamiento indicado"></textarea>
+            </label>
+            <button type="submit">Guardar historial</button>
+          </form>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Paciente</th><th>Médico</th><th>Diagnóstico</th><th>Tratamiento</th><th>Fecha de registro</th><th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="recordsTable"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <template id="emptyRowTemplate">
+      <tr><td colspan="7" class="empty">No hay registros aún.</td></tr>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
