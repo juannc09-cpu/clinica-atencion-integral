@@ -9,8 +9,8 @@
   <body>
     <header class="app-header">
       <p class="badge">Clínica de Atención Integral</p>
-      <h1>Plataforma de citas y seguimiento clínico</h1>
-      <p class="subtitle">Selecciona tu rol para ingresar a una vista dedicada.</p>
+      <h1>Plataforma privada por roles</h1>
+      <p class="subtitle">Cada rol tiene acceso independiente: paciente, especialista/médico y administración.</p>
       <nav class="role-switch" aria-label="Cambiar vista por rol">
         <button class="role-btn active" data-role-view="patientView">Soy paciente</button>
         <button class="role-btn" data-role-view="doctorView">Soy especialista / médico</button>
@@ -20,254 +20,294 @@
 
     <main class="app-main">
       <section id="patientView" class="role-view active">
-        <article class="hero-patient panel">
-          <div>
-            <p class="small-pill">Portal Paciente</p>
-            <h2>Agenda tu cita sin llamadas y en minutos</h2>
-            <p>
-              Elige especialidad, servicio, fecha y hora. Tu cita se registra automáticamente
-              en la agenda del especialista.
-            </p>
-          </div>
-          <ul>
-            <li>✓ Agenda digital 24/7</li>
-            <li>✓ Confirmación inmediata</li>
-            <li>✓ Historial clínico centralizado</li>
-          </ul>
+        <article class="access-gate panel" data-gate="patient">
+          <h2>Acceso privado de paciente</h2>
+          <p>Ingresa tu PIN para ver y gestionar citas de pacientes.</p>
+          <form id="patientAccessForm" class="inline-form">
+            <label>
+              PIN paciente
+              <input type="password" id="patientAccessPin" placeholder="Ej. PACIENTE123" required />
+            </label>
+            <button type="submit">Entrar</button>
+          </form>
+          <p id="patientAccessMessage" class="feedback" aria-live="polite"></p>
         </article>
 
-        <article class="panel">
-          <h3>Agendar cita como paciente</h3>
-          <form id="publicAppointmentForm" class="form-grid two-cols">
-            <label>
-              Nombre del paciente
-              <input type="text" name="patient" required placeholder="Ej. María González" />
-            </label>
-            <label>
-              Especialidad
-              <select name="specialty" id="publicSpecialty" required></select>
-            </label>
-            <label>
-              Médico sugerido
-              <input type="text" name="doctor" id="publicDoctor" required placeholder="Ej. Dr. Carlos Ruiz" />
-            </label>
-            <label>
-              Servicio
-              <select name="service" id="publicService" required></select>
-            </label>
-            <label>
-              Fecha
-              <input type="date" name="date" required />
-            </label>
-            <label>
-              Hora
-              <input type="time" name="time" required />
-            </label>
-            <button type="submit" class="full">Confirmar cita</button>
-          </form>
-          <p id="publicAppointmentFeedback" class="feedback" aria-live="polite"></p>
-        </article>
+        <div class="private-content" data-private="patient" hidden>
+          <article class="hero-patient panel">
+            <div>
+              <p class="small-pill">Portal Paciente</p>
+              <h2>Agenda tu cita sin llamadas y en minutos</h2>
+              <p>Elige especialidad, servicio, fecha y hora. Tu cita queda registrada automáticamente.</p>
+            </div>
+            <ul>
+              <li>✓ Agenda digital 24/7</li>
+              <li>✓ Confirmación inmediata</li>
+              <li>✓ Datos visibles solo con PIN de paciente</li>
+            </ul>
+          </article>
 
-        <article class="panel">
-          <h3>Mis citas (paciente)</h3>
-          <form id="patientFilterForm" class="inline-form">
-            <label>
-              Buscar por nombre de paciente
-              <input type="text" id="patientFilter" placeholder="Ej. María González" />
-            </label>
-            <button type="submit">Consultar</button>
-          </form>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>Médico</th><th>Especialidad</th><th>Servicio</th><th>Fecha</th><th>Hora</th></tr>
-              </thead>
-              <tbody id="patientAppointmentsTable"></tbody>
-            </table>
-          </div>
-        </article>
+          <article class="panel">
+            <h3>Agendar cita como paciente</h3>
+            <form id="publicAppointmentForm" class="form-grid two-cols">
+              <label>
+                Nombre del paciente
+                <input type="text" name="patient" required placeholder="Ej. María González" />
+              </label>
+              <label>
+                Especialidad
+                <select name="specialty" id="publicSpecialty" required></select>
+              </label>
+              <label>
+                Médico sugerido
+                <input type="text" name="doctor" id="publicDoctor" required placeholder="Ej. Dr. Carlos Ruiz" />
+              </label>
+              <label>
+                Servicio
+                <select name="service" id="publicService" required></select>
+              </label>
+              <label>
+                Fecha
+                <input type="date" name="date" required />
+              </label>
+              <label>
+                Hora
+                <input type="time" name="time" required />
+              </label>
+              <button type="submit" class="full">Confirmar cita</button>
+            </form>
+            <p id="publicAppointmentFeedback" class="feedback" aria-live="polite"></p>
+          </article>
+
+          <article class="panel">
+            <h3>Mis citas (paciente)</h3>
+            <form id="patientFilterForm" class="inline-form">
+              <label>
+                Buscar por nombre de paciente
+                <input type="text" id="patientFilter" placeholder="Ej. María González" />
+              </label>
+              <button type="submit">Consultar</button>
+            </form>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Médico</th><th>Especialidad</th><th>Servicio</th><th>Fecha</th><th>Hora</th></tr>
+                </thead>
+                <tbody id="patientAppointmentsTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section id="doctorView" class="role-view">
-        <article class="hero-doctor panel">
-          <div>
-            <p class="small-pill">Portal Especialista</p>
-            <h2>Gestiona tu agenda clínica y seguimiento médico</h2>
-            <p>
-              Visualiza tus citas del día y revisa rápidamente el historial clínico de tus pacientes.
-            </p>
-          </div>
-          <div class="doctor-kpis">
-            <div><span>Citas filtradas</span><strong id="doctorAppointmentsCount">0</strong></div>
-            <div><span>Historiales filtrados</span><strong id="doctorRecordsCount">0</strong></div>
-          </div>
-        </article>
-
-        <article class="panel">
-          <h3>Agenda del especialista</h3>
-          <form id="doctorFilterForm" class="inline-form">
+        <article class="access-gate panel" data-gate="doctor">
+          <h2>Acceso privado de especialista / médico</h2>
+          <p>Ingresa tu PIN para consultar agenda e historial clínico.</p>
+          <form id="doctorAccessForm" class="inline-form">
             <label>
-              Nombre del médico/especialista
-              <input type="text" id="doctorFilter" placeholder="Ej. Dr. Carlos Ruiz" />
+              PIN médico
+              <input type="password" id="doctorAccessPin" placeholder="Ej. MEDICO123" required />
             </label>
-            <button type="submit">Filtrar agenda</button>
+            <button type="submit">Entrar</button>
           </form>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>Paciente</th><th>Especialidad</th><th>Servicio</th><th>Fecha</th><th>Hora</th></tr>
-              </thead>
-              <tbody id="doctorAppointmentsTable"></tbody>
-            </table>
-          </div>
+          <p id="doctorAccessMessage" class="feedback" aria-live="polite"></p>
         </article>
 
-        <article class="panel">
-          <h3>Historial clínico del especialista</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>Paciente</th><th>Diagnóstico</th><th>Tratamiento</th><th>Fecha de registro</th></tr>
-              </thead>
-              <tbody id="doctorRecordsTable"></tbody>
-            </table>
-          </div>
-        </article>
+        <div class="private-content" data-private="doctor" hidden>
+          <article class="hero-doctor panel">
+            <div>
+              <p class="small-pill">Portal Especialista</p>
+              <h2>Gestiona tu agenda clínica y seguimiento médico</h2>
+              <p>Visualiza tus citas del día y revisa el historial clínico de tus pacientes.</p>
+            </div>
+            <div class="doctor-kpis">
+              <div><span>Citas filtradas</span><strong id="doctorAppointmentsCount">0</strong></div>
+              <div><span>Historiales filtrados</span><strong id="doctorRecordsCount">0</strong></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <h3>Agenda del especialista</h3>
+            <form id="doctorFilterForm" class="inline-form">
+              <label>
+                Nombre del médico/especialista
+                <input type="text" id="doctorFilter" placeholder="Ej. Dr. Carlos Ruiz" />
+              </label>
+              <button type="submit">Filtrar agenda</button>
+            </form>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Paciente</th><th>Especialidad</th><th>Servicio</th><th>Fecha</th><th>Hora</th></tr>
+                </thead>
+                <tbody id="doctorAppointmentsTable"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel">
+            <h3>Historial clínico del especialista</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Paciente</th><th>Diagnóstico</th><th>Tratamiento</th><th>Fecha de registro</th></tr>
+                </thead>
+                <tbody id="doctorRecordsTable"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section id="adminView" class="role-view">
-        <div class="admin-layout">
-          <aside class="panel side-menu">
-            <h2>Panel de administración</h2>
-            <nav>
-              <button class="nav-btn active" data-target="dashboard">Resumen</button>
-              <button class="nav-btn" data-target="services">Servicios</button>
-              <button class="nav-btn" data-target="specialties">Especialidades</button>
-              <button class="nav-btn" data-target="appointments">Citas</button>
-              <button class="nav-btn" data-target="records">Historial clínico</button>
-            </nav>
-            <button id="clearDataBtn" class="danger">Limpiar todos los datos</button>
-          </aside>
+        <article class="access-gate panel" data-gate="admin">
+          <h2>Acceso privado de administración</h2>
+          <p>Ingresa tu PIN para administrar servicios, especialidades, citas e historial clínico.</p>
+          <form id="adminAccessForm" class="inline-form">
+            <label>
+              PIN administrador
+              <input type="password" id="adminAccessPin" placeholder="Ej. ADMIN123" required />
+            </label>
+            <button type="submit">Entrar</button>
+          </form>
+          <p id="adminAccessMessage" class="feedback" aria-live="polite"></p>
+        </article>
 
-          <section class="admin-content">
-            <article id="dashboard" class="panel tab active">
-              <h3>Resumen general</h3>
-              <div class="metrics">
-                <div class="metric"><span>Servicios</span><strong id="servicesCount">0</strong></div>
-                <div class="metric"><span>Especialidades</span><strong id="specialtiesCount">0</strong></div>
-                <div class="metric"><span>Citas</span><strong id="appointmentsCount">0</strong></div>
-                <div class="metric"><span>Historiales</span><strong id="recordsCount">0</strong></div>
-              </div>
-            </article>
+        <div class="private-content" data-private="admin" hidden>
+          <div class="admin-layout">
+            <aside class="panel side-menu">
+              <h2>Panel de administración</h2>
+              <nav>
+                <button class="nav-btn active" data-target="dashboard">Resumen</button>
+                <button class="nav-btn" data-target="services">Servicios</button>
+                <button class="nav-btn" data-target="specialties">Especialidades</button>
+                <button class="nav-btn" data-target="appointments">Citas</button>
+                <button class="nav-btn" data-target="records">Historial clínico</button>
+              </nav>
+              <button id="clearDataBtn" class="danger">Limpiar todos los datos</button>
+            </aside>
 
-            <article id="services" class="panel tab">
-              <h3>Servicios</h3>
-              <form id="serviceForm" class="form-grid">
-                <label>
-                  Nombre del servicio
-                  <input type="text" name="name" required placeholder="Ej. Ecografía" />
-                </label>
-                <label>
-                  Descripción
-                  <textarea name="description" required placeholder="Descripción del servicio"></textarea>
-                </label>
-                <button type="submit">Agregar servicio</button>
-              </form>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Servicio</th><th>Descripción</th><th>Acción</th></tr></thead>
-                  <tbody id="servicesTable"></tbody>
-                </table>
-              </div>
-            </article>
+            <section class="admin-content">
+              <article id="dashboard" class="panel tab active">
+                <h3>Resumen general</h3>
+                <div class="metrics">
+                  <div class="metric"><span>Servicios</span><strong id="servicesCount">0</strong></div>
+                  <div class="metric"><span>Especialidades</span><strong id="specialtiesCount">0</strong></div>
+                  <div class="metric"><span>Citas</span><strong id="appointmentsCount">0</strong></div>
+                  <div class="metric"><span>Historiales</span><strong id="recordsCount">0</strong></div>
+                </div>
+              </article>
 
-            <article id="specialties" class="panel tab">
-              <h3>Especialidades</h3>
-              <form id="specialtyForm" class="form-grid">
-                <label>
-                  Especialidad
-                  <input type="text" name="name" required placeholder="Ej. Pediatría" />
-                </label>
-                <label>
-                  Médico responsable
-                  <input type="text" name="doctor" required placeholder="Ej. Dra. Elena Rojas" />
-                </label>
-                <button type="submit">Agregar especialidad</button>
-              </form>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Especialidad</th><th>Médico</th><th>Acción</th></tr></thead>
-                  <tbody id="specialtiesTable"></tbody>
-                </table>
-              </div>
-            </article>
+              <article id="services" class="panel tab">
+                <h3>Servicios</h3>
+                <form id="serviceForm" class="form-grid">
+                  <label>
+                    Nombre del servicio
+                    <input type="text" name="name" required placeholder="Ej. Ecografía" />
+                  </label>
+                  <label>
+                    Descripción
+                    <textarea name="description" required placeholder="Descripción del servicio"></textarea>
+                  </label>
+                  <button type="submit">Agregar servicio</button>
+                </form>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Servicio</th><th>Descripción</th><th>Acción</th></tr></thead>
+                    <tbody id="servicesTable"></tbody>
+                  </table>
+                </div>
+              </article>
 
-            <article id="appointments" class="panel tab">
-              <h3>Citas (administración)</h3>
-              <form id="appointmentForm" class="form-grid two-cols">
-                <label>
-                  Paciente
-                  <input type="text" name="patient" required />
-                </label>
-                <label>
-                  Médico
-                  <input type="text" name="doctor" required />
-                </label>
-                <label>
-                  Especialidad
-                  <select name="specialty" id="appointmentSpecialty" required></select>
-                </label>
-                <label>
-                  Servicio
-                  <select name="service" id="appointmentService" required></select>
-                </label>
-                <label>
-                  Fecha
-                  <input type="date" name="date" required />
-                </label>
-                <label>
-                  Hora
-                  <input type="time" name="time" required />
-                </label>
-                <button type="submit" class="full">Agendar cita</button>
-              </form>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Paciente</th><th>Médico</th><th>Especialidad</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Acción</th></tr></thead>
-                  <tbody id="appointmentsTable"></tbody>
-                </table>
-              </div>
-            </article>
+              <article id="specialties" class="panel tab">
+                <h3>Especialidades</h3>
+                <form id="specialtyForm" class="form-grid">
+                  <label>
+                    Especialidad
+                    <input type="text" name="name" required placeholder="Ej. Pediatría" />
+                  </label>
+                  <label>
+                    Médico responsable
+                    <input type="text" name="doctor" required placeholder="Ej. Dra. Elena Rojas" />
+                  </label>
+                  <button type="submit">Agregar especialidad</button>
+                </form>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Especialidad</th><th>Médico</th><th>Acción</th></tr></thead>
+                    <tbody id="specialtiesTable"></tbody>
+                  </table>
+                </div>
+              </article>
 
-            <article id="records" class="panel tab">
-              <h3>Historial clínico</h3>
-              <form id="recordForm" class="form-grid two-cols">
-                <label>
-                  Paciente
-                  <input type="text" name="patient" required />
-                </label>
-                <label>
-                  Médico
-                  <input type="text" name="doctor" required />
-                </label>
-                <label>
-                  Diagnóstico
-                  <textarea name="diagnosis" required></textarea>
-                </label>
-                <label>
-                  Tratamiento / Evolución
-                  <textarea name="treatment" required></textarea>
-                </label>
-                <button type="submit" class="full">Guardar historial</button>
-              </form>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Paciente</th><th>Médico</th><th>Diagnóstico</th><th>Tratamiento</th><th>Fecha</th><th>Acción</th></tr></thead>
-                  <tbody id="recordsTable"></tbody>
-                </table>
-              </div>
-            </article>
-          </section>
+              <article id="appointments" class="panel tab">
+                <h3>Citas (administración)</h3>
+                <form id="appointmentForm" class="form-grid two-cols">
+                  <label>
+                    Paciente
+                    <input type="text" name="patient" required />
+                  </label>
+                  <label>
+                    Médico
+                    <input type="text" name="doctor" required />
+                  </label>
+                  <label>
+                    Especialidad
+                    <select name="specialty" id="appointmentSpecialty" required></select>
+                  </label>
+                  <label>
+                    Servicio
+                    <select name="service" id="appointmentService" required></select>
+                  </label>
+                  <label>
+                    Fecha
+                    <input type="date" name="date" required />
+                  </label>
+                  <label>
+                    Hora
+                    <input type="time" name="time" required />
+                  </label>
+                  <button type="submit" class="full">Agendar cita</button>
+                </form>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Paciente</th><th>Médico</th><th>Especialidad</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Acción</th></tr></thead>
+                    <tbody id="appointmentsTable"></tbody>
+                  </table>
+                </div>
+              </article>
+
+              <article id="records" class="panel tab">
+                <h3>Historial clínico</h3>
+                <form id="recordForm" class="form-grid two-cols">
+                  <label>
+                    Paciente
+                    <input type="text" name="patient" required />
+                  </label>
+                  <label>
+                    Médico
+                    <input type="text" name="doctor" required />
+                  </label>
+                  <label>
+                    Diagnóstico
+                    <textarea name="diagnosis" required></textarea>
+                  </label>
+                  <label>
+                    Tratamiento / Evolución
+                    <textarea name="treatment" required></textarea>
+                  </label>
+                  <button type="submit" class="full">Guardar historial</button>
+                </form>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Paciente</th><th>Médico</th><th>Diagnóstico</th><th>Tratamiento</th><th>Fecha</th><th>Acción</th></tr></thead>
+                    <tbody id="recordsTable"></tbody>
+                  </table>
+                </div>
+              </article>
+            </section>
+          </div>
         </div>
       </section>
     </main>

@@ -1,4 +1,11 @@
 const STORAGE_KEY = 'clinicaAtencionIntegralData';
+const ACCESS_KEY = 'clinicaAtencionIntegralAccess';
+
+const ROLE_PINS = {
+  patient: 'PACIENTE123',
+  doctor: 'MEDICO123',
+  admin: 'ADMIN123'
+};
 
 const defaultData = {
   services: [],
@@ -8,6 +15,7 @@ const defaultData = {
 };
 
 const state = loadState();
+const accessState = loadAccessState();
 let doctorFilterValue = '';
 let patientFilterValue = '';
 
@@ -16,6 +24,27 @@ const refs = {
   roleViews: document.querySelectorAll('.role-view'),
   tabs: document.querySelectorAll('.tab'),
   navButtons: document.querySelectorAll('.nav-btn'),
+
+  gates: {
+    patient: document.querySelector('[data-gate="patient"]'),
+    doctor: document.querySelector('[data-gate="doctor"]'),
+    admin: document.querySelector('[data-gate="admin"]')
+  },
+  privateSections: {
+    patient: document.querySelector('[data-private="patient"]'),
+    doctor: document.querySelector('[data-private="doctor"]'),
+    admin: document.querySelector('[data-private="admin"]')
+  },
+
+  patientAccessForm: document.getElementById('patientAccessForm'),
+  doctorAccessForm: document.getElementById('doctorAccessForm'),
+  adminAccessForm: document.getElementById('adminAccessForm'),
+  patientAccessPin: document.getElementById('patientAccessPin'),
+  doctorAccessPin: document.getElementById('doctorAccessPin'),
+  adminAccessPin: document.getElementById('adminAccessPin'),
+  patientAccessMessage: document.getElementById('patientAccessMessage'),
+  doctorAccessMessage: document.getElementById('doctorAccessMessage'),
+  adminAccessMessage: document.getElementById('adminAccessMessage'),
 
   servicesTable: document.getElementById('servicesTable'),
   specialtiesTable: document.getElementById('specialtiesTable'),
@@ -60,9 +89,11 @@ init();
 
 function init() {
   bindRoleViews();
+  bindAccessForms();
   bindAdminNavigation();
   bindForms();
   bindActions();
+  applyAccessUI();
   renderAll();
 }
 
@@ -75,6 +106,43 @@ function bindRoleViews() {
       const target = document.getElementById(button.dataset.roleView);
       if (target) target.classList.add('active');
     });
+  });
+}
+
+function bindAccessForms() {
+  refs.patientAccessForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    handleAccessSubmit('patient', refs.patientAccessPin.value, refs.patientAccessMessage, refs.patientAccessForm);
+  });
+
+  refs.doctorAccessForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    handleAccessSubmit('doctor', refs.doctorAccessPin.value, refs.doctorAccessMessage, refs.doctorAccessForm);
+  });
+
+  refs.adminAccessForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    handleAccessSubmit('admin', refs.adminAccessPin.value, refs.adminAccessMessage, refs.adminAccessForm);
+  });
+}
+
+function handleAccessSubmit(role, pinInput, messageRef, formRef) {
+  if (pinInput === ROLE_PINS[role]) {
+    accessState[role] = true;
+    saveAccessState();
+    applyAccessUI();
+    messageRef.textContent = '✅ Acceso concedido.';
+    formRef.reset();
+    return;
+  }
+
+  messageRef.textContent = '❌ PIN incorrecto.';
+}
+
+function applyAccessUI() {
+  Object.entries(accessState).forEach(([role, allowed]) => {
+    refs.gates[role].hidden = allowed;
+    refs.privateSections[role].hidden = !allowed;
   });
 }
 
@@ -93,49 +161,39 @@ function bindAdminNavigation() {
 function bindForms() {
   refs.serviceForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!accessState.admin) return;
     const data = new FormData(event.currentTarget);
-    state.services.push({
-      id: crypto.randomUUID(),
-      name: data.get('name').toString().trim(),
-      description: data.get('description').toString().trim()
-    });
+    state.services.push({ id: crypto.randomUUID(), name: data.get('name').toString().trim(), description: data.get('description').toString().trim() });
     event.currentTarget.reset();
     persistAndRender();
   });
 
   refs.specialtyForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!accessState.admin) return;
     const data = new FormData(event.currentTarget);
-    state.specialties.push({
-      id: crypto.randomUUID(),
-      name: data.get('name').toString().trim(),
-      doctor: data.get('doctor').toString().trim()
-    });
+    state.specialties.push({ id: crypto.randomUUID(), name: data.get('name').toString().trim(), doctor: data.get('doctor').toString().trim() });
     event.currentTarget.reset();
     persistAndRender();
   });
 
   refs.appointmentForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!accessState.admin) return;
     createAppointment(event.currentTarget);
   });
 
   refs.publicAppointmentForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!accessState.patient) return;
     const created = createAppointment(event.currentTarget);
-    refs.publicFeedback.textContent = created
-      ? '✅ Cita confirmada. Puedes verla en "Mis citas".'
-      : '⚠️ No se pudo agendar. Verifica los datos.';
-
-    if (created) {
-      setTimeout(() => {
-        refs.publicFeedback.textContent = '';
-      }, 3200);
-    }
+    refs.publicFeedback.textContent = created ? '✅ Cita confirmada. Puedes verla en "Mis citas".' : '⚠️ No se pudo agendar. Verifica los datos.';
+    if (created) setTimeout(() => { refs.publicFeedback.textContent = ''; }, 3200);
   });
 
   refs.recordForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!accessState.admin) return;
     const data = new FormData(event.currentTarget);
     state.records.push({
       id: crypto.randomUUID(),
@@ -151,12 +209,14 @@ function bindForms() {
 
   refs.doctorFilterForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!accessState.doctor) return;
     doctorFilterValue = refs.doctorFilterInput.value.trim().toLowerCase();
     renderDoctorView();
   });
 
   refs.patientFilterForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (!accessState.patient) return;
     patientFilterValue = refs.patientFilterInput.value.trim().toLowerCase();
     renderPatientView();
   });
@@ -170,9 +230,9 @@ function bindActions() {
   });
 
   refs.clearDataBtn.addEventListener('click', () => {
+    if (!accessState.admin) return;
     const confirmed = confirm('¿Deseas eliminar todos los datos?');
     if (!confirmed) return;
-
     Object.assign(state, structuredClone(defaultData));
     doctorFilterValue = '';
     patientFilterValue = '';
@@ -183,21 +243,12 @@ function bindActions() {
 
   document.addEventListener('click', (event) => {
     const button = event.target.closest('[data-delete]');
-    if (!button) return;
-
+    if (!button || !accessState.admin) return;
     const [collection, id] = button.dataset.delete.split(':');
     if (!state[collection]) return;
-
     state[collection] = state[collection].filter((item) => item.id !== id);
-
-    if (collection === 'services') {
-      state.appointments = state.appointments.filter((item) => item.service !== button.dataset.value);
-    }
-
-    if (collection === 'specialties') {
-      state.appointments = state.appointments.filter((item) => item.specialty !== button.dataset.value);
-    }
-
+    if (collection === 'services') state.appointments = state.appointments.filter((item) => item.service !== button.dataset.value);
+    if (collection === 'specialties') state.appointments = state.appointments.filter((item) => item.specialty !== button.dataset.value);
     persistAndRender();
   });
 }
@@ -215,19 +266,9 @@ function createAppointment(formElement) {
   const service = data.get('service').toString();
   const date = data.get('date').toString();
   const time = data.get('time').toString();
-
   if (!patient || !doctor || !specialty || !service || !date || !time) return false;
 
-  state.appointments.push({
-    id: crypto.randomUUID(),
-    patient,
-    doctor,
-    specialty,
-    service,
-    date,
-    time
-  });
-
+  state.appointments.push({ id: crypto.randomUUID(), patient, doctor, specialty, service, date, time });
   formElement.reset();
   persistAndRender();
   return true;
@@ -249,26 +290,16 @@ function renderAdminTables() {
 }
 
 function renderDoctorView() {
-  const appointments = doctorFilterValue
-    ? state.appointments.filter((item) => item.doctor.toLowerCase().includes(doctorFilterValue))
-    : state.appointments;
-
-  const records = doctorFilterValue
-    ? state.records.filter((item) => item.doctor.toLowerCase().includes(doctorFilterValue))
-    : state.records;
-
+  const appointments = doctorFilterValue ? state.appointments.filter((item) => item.doctor.toLowerCase().includes(doctorFilterValue)) : state.appointments;
+  const records = doctorFilterValue ? state.records.filter((item) => item.doctor.toLowerCase().includes(doctorFilterValue)) : state.records;
   renderRows(refs.doctorAppointmentsTable, appointments, renderDoctorAppointmentRow, 5);
   renderRows(refs.doctorRecordsTable, records, renderDoctorRecordRow, 4);
-
   refs.doctorAppointmentsCount.textContent = String(appointments.length);
   refs.doctorRecordsCount.textContent = String(records.length);
 }
 
 function renderPatientView() {
-  const appointments = patientFilterValue
-    ? state.appointments.filter((item) => item.patient.toLowerCase().includes(patientFilterValue))
-    : state.appointments;
-
+  const appointments = patientFilterValue ? state.appointments.filter((item) => item.patient.toLowerCase().includes(patientFilterValue)) : state.appointments;
   renderRows(refs.patientAppointmentsTable, appointments, renderPatientAppointmentRow, 5);
 }
 
@@ -285,7 +316,6 @@ function populateSelect(selectElement, items, key, label) {
   empty.value = '';
   empty.textContent = items.length ? `Selecciona ${label}` : `No hay ${label}es registradas`;
   selectElement.appendChild(empty);
-
   items.forEach((item) => {
     const option = document.createElement('option');
     option.value = item[key];
@@ -300,7 +330,6 @@ function renderRows(tableBody, items, mapper, colSpan) {
     tableBody.innerHTML = `<tr><td class="empty" colspan="${colSpan}">No hay registros aún.</td></tr>`;
     return;
   }
-
   items.forEach((item) => {
     const row = document.createElement('tr');
     row.innerHTML = mapper(item);
@@ -308,33 +337,13 @@ function renderRows(tableBody, items, mapper, colSpan) {
   });
 }
 
-function renderServiceRow(service) {
-  return `<td>${escapeHTML(service.name)}</td><td>${escapeHTML(service.description)}</td><td><button class="action-btn" data-delete="services:${service.id}" data-value="${escapeHTML(service.name)}">Eliminar</button></td>`;
-}
-
-function renderSpecialtyRow(specialty) {
-  return `<td>${escapeHTML(specialty.name)}</td><td>${escapeHTML(specialty.doctor)}</td><td><button class="action-btn" data-delete="specialties:${specialty.id}" data-value="${escapeHTML(specialty.name)}">Eliminar</button></td>`;
-}
-
-function renderAppointmentRow(appointment) {
-  return `<td>${escapeHTML(appointment.patient)}</td><td>${escapeHTML(appointment.doctor)}</td><td>${escapeHTML(appointment.specialty)}</td><td>${escapeHTML(appointment.service)}</td><td>${escapeHTML(appointment.date)}</td><td>${escapeHTML(appointment.time)}</td><td><button class="action-btn" data-delete="appointments:${appointment.id}">Eliminar</button></td>`;
-}
-
-function renderRecordRow(record) {
-  return `<td>${escapeHTML(record.patient)}</td><td>${escapeHTML(record.doctor)}</td><td>${escapeHTML(record.diagnosis)}</td><td>${escapeHTML(record.treatment)}</td><td>${escapeHTML(record.createdAt)}</td><td><button class="action-btn" data-delete="records:${record.id}">Eliminar</button></td>`;
-}
-
-function renderDoctorAppointmentRow(item) {
-  return `<td>${escapeHTML(item.patient)}</td><td>${escapeHTML(item.specialty)}</td><td>${escapeHTML(item.service)}</td><td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.time)}</td>`;
-}
-
-function renderDoctorRecordRow(item) {
-  return `<td>${escapeHTML(item.patient)}</td><td>${escapeHTML(item.diagnosis)}</td><td>${escapeHTML(item.treatment)}</td><td>${escapeHTML(item.createdAt)}</td>`;
-}
-
-function renderPatientAppointmentRow(item) {
-  return `<td>${escapeHTML(item.doctor)}</td><td>${escapeHTML(item.specialty)}</td><td>${escapeHTML(item.service)}</td><td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.time)}</td>`;
-}
+function renderServiceRow(service) { return `<td>${escapeHTML(service.name)}</td><td>${escapeHTML(service.description)}</td><td><button class="action-btn" data-delete="services:${service.id}" data-value="${escapeHTML(service.name)}">Eliminar</button></td>`; }
+function renderSpecialtyRow(specialty) { return `<td>${escapeHTML(specialty.name)}</td><td>${escapeHTML(specialty.doctor)}</td><td><button class="action-btn" data-delete="specialties:${specialty.id}" data-value="${escapeHTML(specialty.name)}">Eliminar</button></td>`; }
+function renderAppointmentRow(appointment) { return `<td>${escapeHTML(appointment.patient)}</td><td>${escapeHTML(appointment.doctor)}</td><td>${escapeHTML(appointment.specialty)}</td><td>${escapeHTML(appointment.service)}</td><td>${escapeHTML(appointment.date)}</td><td>${escapeHTML(appointment.time)}</td><td><button class="action-btn" data-delete="appointments:${appointment.id}">Eliminar</button></td>`; }
+function renderRecordRow(record) { return `<td>${escapeHTML(record.patient)}</td><td>${escapeHTML(record.doctor)}</td><td>${escapeHTML(record.diagnosis)}</td><td>${escapeHTML(record.treatment)}</td><td>${escapeHTML(record.createdAt)}</td><td><button class="action-btn" data-delete="records:${record.id}">Eliminar</button></td>`; }
+function renderDoctorAppointmentRow(item) { return `<td>${escapeHTML(item.patient)}</td><td>${escapeHTML(item.specialty)}</td><td>${escapeHTML(item.service)}</td><td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.time)}</td>`; }
+function renderDoctorRecordRow(item) { return `<td>${escapeHTML(item.patient)}</td><td>${escapeHTML(item.diagnosis)}</td><td>${escapeHTML(item.treatment)}</td><td>${escapeHTML(item.createdAt)}</td>`; }
+function renderPatientAppointmentRow(item) { return `<td>${escapeHTML(item.doctor)}</td><td>${escapeHTML(item.specialty)}</td><td>${escapeHTML(item.service)}</td><td>${escapeHTML(item.date)}</td><td>${escapeHTML(item.time)}</td>`; }
 
 function updateCounters() {
   refs.counts.services.textContent = String(state.services.length);
@@ -351,7 +360,6 @@ function persistAndRender() {
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return structuredClone(defaultData);
-
   try {
     const parsed = JSON.parse(raw);
     return {
@@ -363,6 +371,25 @@ function loadState() {
   } catch {
     return structuredClone(defaultData);
   }
+}
+
+function loadAccessState() {
+  const raw = localStorage.getItem(ACCESS_KEY);
+  if (!raw) return { patient: false, doctor: false, admin: false };
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      patient: Boolean(parsed.patient),
+      doctor: Boolean(parsed.doctor),
+      admin: Boolean(parsed.admin)
+    };
+  } catch {
+    return { patient: false, doctor: false, admin: false };
+  }
+}
+
+function saveAccessState() {
+  localStorage.setItem(ACCESS_KEY, JSON.stringify(accessState));
 }
 
 function escapeHTML(value) {
