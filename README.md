@@ -1,20 +1,23 @@
 # Clínica de Atención Integral
 
-Aplicación web con vistas separadas y privadas por rol para una clínica.
+Aplicación web con vistas separadas por rol para una clínica.
 
-## Vistas y privacidad por rol
+## Vistas y acceso
 
-- **Paciente:** acceso con PIN, agenda de cita y consulta de citas por nombre.
-- **Especialista / médico:** acceso con PIN, agenda filtrada por médico e historial clínico asociado.
-- **Administración:** acceso con PIN, gestión de servicios, especialidades, citas e historial clínico.
+- **Paciente:** acceso directo para agendar y consultar citas.
+- **Especialista / médico:** inicio de sesión personalizado con usuario y contraseña.
+- **Administrador:** inicio de sesión personalizado con usuario y contraseña.
 
-## PIN de acceso (demo)
+## Credenciales demo
 
-- Paciente: `PACIENTE123`
-- Médico: `MEDICO123`
-- Administrador: `ADMIN123`
+- Médico
+  - Usuario: `medico.carlos`
+  - Contraseña: `Medico2026*`
+- Administrador
+  - Usuario: `admin.clinica`
+  - Contraseña: `Admin2026*`
 
-> Nota: Esta privacidad es de front-end (demo) con `localStorage`. Para seguridad real se recomienda backend con autenticación y control de sesión.
+> Nota: Este login es de front-end (demo) con `localStorage`. Para seguridad real se requiere backend con autenticación y manejo de sesión.
 
 ## Tecnologías
 

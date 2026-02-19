@@ -1,10 +1,9 @@
 const STORAGE_KEY = 'clinicaAtencionIntegralData';
 const ACCESS_KEY = 'clinicaAtencionIntegralAccess';
 
-const ROLE_PINS = {
-  patient: 'PACIENTE123',
-  doctor: 'MEDICO123',
-  admin: 'ADMIN123'
+const ROLE_CREDENTIALS = {
+  doctor: { username: 'medico.carlos', password: 'Medico2026*' },
+  admin: { username: 'admin.clinica', password: 'Admin2026*' }
 };
 
 const defaultData = {
@@ -26,23 +25,20 @@ const refs = {
   navButtons: document.querySelectorAll('.nav-btn'),
 
   gates: {
-    patient: document.querySelector('[data-gate="patient"]'),
     doctor: document.querySelector('[data-gate="doctor"]'),
     admin: document.querySelector('[data-gate="admin"]')
   },
   privateSections: {
-    patient: document.querySelector('[data-private="patient"]'),
     doctor: document.querySelector('[data-private="doctor"]'),
     admin: document.querySelector('[data-private="admin"]')
   },
 
-  patientAccessForm: document.getElementById('patientAccessForm'),
   doctorAccessForm: document.getElementById('doctorAccessForm'),
   adminAccessForm: document.getElementById('adminAccessForm'),
-  patientAccessPin: document.getElementById('patientAccessPin'),
-  doctorAccessPin: document.getElementById('doctorAccessPin'),
-  adminAccessPin: document.getElementById('adminAccessPin'),
-  patientAccessMessage: document.getElementById('patientAccessMessage'),
+  doctorUsername: document.getElementById('doctorUsername'),
+  doctorPassword: document.getElementById('doctorPassword'),
+  adminUsername: document.getElementById('adminUsername'),
+  adminPassword: document.getElementById('adminPassword'),
   doctorAccessMessage: document.getElementById('doctorAccessMessage'),
   adminAccessMessage: document.getElementById('adminAccessMessage'),
 
@@ -110,33 +106,29 @@ function bindRoleViews() {
 }
 
 function bindAccessForms() {
-  refs.patientAccessForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    handleAccessSubmit('patient', refs.patientAccessPin.value, refs.patientAccessMessage, refs.patientAccessForm);
-  });
-
   refs.doctorAccessForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    handleAccessSubmit('doctor', refs.doctorAccessPin.value, refs.doctorAccessMessage, refs.doctorAccessForm);
+    handleAccessSubmit('doctor', refs.doctorUsername.value, refs.doctorPassword.value, refs.doctorAccessMessage, refs.doctorAccessForm);
   });
 
   refs.adminAccessForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    handleAccessSubmit('admin', refs.adminAccessPin.value, refs.adminAccessMessage, refs.adminAccessForm);
+    handleAccessSubmit('admin', refs.adminUsername.value, refs.adminPassword.value, refs.adminAccessMessage, refs.adminAccessForm);
   });
 }
 
-function handleAccessSubmit(role, pinInput, messageRef, formRef) {
-  if (pinInput === ROLE_PINS[role]) {
+function handleAccessSubmit(role, usernameInput, passwordInput, messageRef, formRef) {
+  const valid = usernameInput === ROLE_CREDENTIALS[role].username && passwordInput === ROLE_CREDENTIALS[role].password;
+  if (valid) {
     accessState[role] = true;
     saveAccessState();
     applyAccessUI();
-    messageRef.textContent = '✅ Acceso concedido.';
+    messageRef.textContent = `✅ Sesión iniciada como ${role === 'admin' ? 'administrador' : 'médico'}.`;
     formRef.reset();
     return;
   }
 
-  messageRef.textContent = '❌ PIN incorrecto.';
+  messageRef.textContent = '❌ Usuario o contraseña incorrectos.';
 }
 
 function applyAccessUI() {
@@ -185,7 +177,6 @@ function bindForms() {
 
   refs.publicAppointmentForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!accessState.patient) return;
     const created = createAppointment(event.currentTarget);
     refs.publicFeedback.textContent = created ? '✅ Cita confirmada. Puedes verla en "Mis citas".' : '⚠️ No se pudo agendar. Verifica los datos.';
     if (created) setTimeout(() => { refs.publicFeedback.textContent = ''; }, 3200);
@@ -216,7 +207,6 @@ function bindForms() {
 
   refs.patientFilterForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!accessState.patient) return;
     patientFilterValue = refs.patientFilterInput.value.trim().toLowerCase();
     renderPatientView();
   });
@@ -375,16 +365,12 @@ function loadState() {
 
 function loadAccessState() {
   const raw = localStorage.getItem(ACCESS_KEY);
-  if (!raw) return { patient: false, doctor: false, admin: false };
+  if (!raw) return { doctor: false, admin: false };
   try {
     const parsed = JSON.parse(raw);
-    return {
-      patient: Boolean(parsed.patient),
-      doctor: Boolean(parsed.doctor),
-      admin: Boolean(parsed.admin)
-    };
+    return { doctor: Boolean(parsed.doctor), admin: Boolean(parsed.admin) };
   } catch {
-    return { patient: false, doctor: false, admin: false };
+    return { doctor: false, admin: false };
   }
 }
 
